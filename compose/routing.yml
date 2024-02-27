@@ -1,0 +1,47 @@
+version: "3"
+services:
+
+  traefik:
+    container_name: cs_traefik    
+    image: traefik:v2.6    
+    ports:      
+      - "80:80"
+      - "443:443"      
+      - "8080:8080"
+      #- "3306:3306"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml
+      - ./traefik/configs.yml:/etc/traefik/configs.yml
+      - ./traefik/letsencrypt:/letsencrypt/
+    networks:
+      - apps
+      - monitor
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USER}:${TRAEFIK_PASS}"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.certresolver=le"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+  whoami:
+    image: "traefik/whoami"
+    container_name: "cs_wai"
+    labels:
+      - "traefik.enable=true"      
+      - "traefik.http.routers.whoami.tls=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.${DOMAIN}`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=le"
+    networks:
+      - apps
+
+networks:
+  apps:
+    external: true
+  monitor:
+    external: true

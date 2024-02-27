@@ -1,0 +1,57 @@
+version: "3"
+services:
+
+  shared:
+    build: ./shared/
+    container_name: generic_shared
+    command: npx prisma studio        
+    volumes:
+      - ./shared:/app
+    labels:
+      - "traefik.enable=true"      
+      - "traefik.http.routers.rga_shared.rule=Host(`prisma.${DOMAIN}`)"
+      - "traefik.http.routers.rga_shared.middlewares=test-auth@file"
+      - "traefik.http.services.rga_shared.loadbalancer.server.port=5555"
+      - "traefik.http.routers.rga_shared.entrypoints=web"
+    networks:
+      - apps
+  
+  api:
+    container_name: generic_api
+    build: ./api/
+    command: npm start
+    volumes:
+      - ./api:/app
+      - ./shared:/app/shared
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rga_api.entrypoints=web"
+      - "traefik.http.routers.rga_api.rule=Host(`rga.${DOMAIN}`)"
+      # - "traefik.http.routers.service_template.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/template/v1`)"            
+      - "traefik.http.services.rga_api.loadbalancer.server.port=4004"
+    networks:
+      - apps
+    ports:
+      - 4004:4004
+
+  mysql:
+    image: mysql:8
+    container_name: generic_mysql
+    working_dir: /application
+    volumes:
+      - ./:/application
+      - ./db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=3d517f8924ac7fd03699a29d97dc52d9
+      - MYSQL_DATABASE=generic
+      - MYSQL_USER=generic
+      - MYSQL_PASSWORD=5b9036c564832c1759746c5f214f8547
+    command: ["mysqld", "--default-authentication-plugin=mysql_native_password"]
+    networks:
+      - apps
+    ports:
+      - "8018:3306"
+      
+networks:
+  apps:
+    external: true

@@ -1,0 +1,39 @@
+version: "3"
+services:
+  web:
+    container_name: cs_web
+    build: ./web/
+    command: npm run preview
+    restart: always
+    volumes:
+      - ./web:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.tls=true"
+      - "traefik.http.routers.web.tls.certresolver=le"  
+      - "traefik.http.routers.web.rule=Host(`${DOMAIN}`)"      
+      - "traefik.http.services.web.loadbalancer.server.port=8082"
+    networks:
+      - apps
+
+  service_telegram:    
+    container_name: cs_telegram
+    build: ./service_telegram/
+    command: npm start
+    restart: always
+    volumes:
+      - ./service_telegram:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.service_telegram.entrypoints=websecure"
+      - "traefik.http.routers.service_telegram.tls=true"
+      - "traefik.http.routers.service_telegram.tls.certresolver=le"  
+      - "traefik.http.routers.service_telegram.rule=Host(`${DOMAIN}`) && PathPrefix(`/api/telegram/v1`)"      
+      - "traefik.http.services.service_telegram.loadbalancer.server.port=5006"
+    networks:
+      - apps
+
+networks:
+  apps:
+    external: true
