@@ -1,0 +1,149 @@
+version: "3"
+services:
+
+  rabbitmq:
+    container_name: cs_rabbitmq
+    image: rabbitmq:3.11-management
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rabbitmq.entrypoints=websecure"
+      - "traefik.http.routers.rabbitmq.tls=true"
+      - "traefik.http.routers.rabbitmq.tls.certresolver=le"  
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.${DOMAIN}`)"      
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+    networks:
+      - apps
+      - monitor
+  
+  minio:
+    image: minio/minio    
+    volumes:
+      - ./minio/data:/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASS}
+      - MINIO_BROWSER_REDIRECT_URL=https://minio.${DOMAIN}
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.entrypoints=websecure"
+      - "traefik.http.routers.minio.tls=true"
+      - "traefik.http.routers.minio.tls.certresolver=le"  
+      - "traefik.http.routers.minio.rule=Host(`minio.${DOMAIN}`)"      
+      - "traefik.http.services.minio.loadbalancer.server.port=9001"
+    networks:
+      - apps      
+      - monitor
+    command: server --console-address ":9001" /data
+
+  cronicle:
+    image: bluet/cronicle-docker:latest
+    hostname: cronicle
+    environment:
+      - TZ=Europe/Vienna
+      - NODE_PATH=/usr/local/lib/node_modules      
+    # ports:
+    #   - 3012:3012
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock      
+      - ./cronicle/data:/opt/cronicle/data
+      - ./cronicle/logs:/opt/cronicle/logs
+      - ./cronicle/plugins:/opt/cronicle/plugins
+      # - ./cronicle/bot:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cronicle.entrypoints=websecure"
+      - "traefik.http.routers.cronicle.tls=true"
+      - "traefik.http.routers.cronicle.tls.certresolver=le"  
+      - "traefik.http.routers.cronicle.rule=Host(`cronicle.${DOMAIN}`)"      
+      - "traefik.http.services.cronicle.loadbalancer.server.port=3012"
+    networks:
+      - apps      
+
+  redis:
+    image: "redis/redis-stack:latest"    
+    container_name: cs_redis
+    volumes:
+      - ./redis/data:/data      
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.redis.entrypoints=websecure"
+      - "traefik.http.routers.redis.tls=true"
+      - "traefik.http.routers.redis.tls.certresolver=le"  
+      - "traefik.http.routers.redis.rule=Host(`redis.${DOMAIN}`)"      
+      - "traefik.http.services.redis.loadbalancer.server.port=8001"
+    networks:
+      - apps
+      - monitor
+  
+  uptime:
+    image: "louislam/uptime-kuma:1"
+    container_name: cs_uptime
+    volumes:      
+      - ./uptime:/app/data      
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.uptime.entrypoints=websecure"
+      - "traefik.http.routers.uptime.tls=true"
+      - "traefik.http.routers.uptime.tls.certresolver=le"  
+      - "traefik.http.routers.uptime.rule=Host(`status.${DOMAIN}`)"      
+      - "traefik.http.services.uptime.loadbalancer.server.port=3001"
+    networks:
+      - apps
+      - monitor
+
+  # postgres:
+  #   image: postgres
+  #   container_name: cs_postgres
+  #   volumes:      
+  #     - ./postgres:/var/lib/mysql
+  #   environment:
+  #     - POSTGRES_USER=${POSTGRES_USER}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASS}
+  #     - POSTGRES_DB=${POSTGRES_DB}
+  #   networks:
+  #     - apps
+  #     - monitor
+  #   ports:
+  #     - "5432:5432"
+  
+  # vaultwarden:
+  #   image: "vaultwarden/server:latest"    
+  #   container_name: cs_vaultwarden
+  #   volumes:
+  #     - ./vaultwarden/:/data      
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.vaultwarden.entrypoints=websecure"
+  #     - "traefik.http.routers.vaultwarden.tls=true"
+  #     - "traefik.http.routers.vaultwarden.tls.certresolver=le"  
+  #     - "traefik.http.routers.vaultwarden.rule=Host(`vaultwarden.${DOMAIN}`)"      
+  #     - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
+  #   networks:
+  #     - apps
+  
+  # dashy:
+  #   image: "lissy93/dashy:latest"    
+  #   container_name: cs_dashy
+  #   volumes:      
+  #     - ./dashy/conf.yml:/app/public/conf.yml
+  #     - ./dashy/item-icons:/app/public/item-icons
+  #   environment:
+  #     - NODE_ENV=production
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.dashy.entrypoints=websecure"
+  #     - "traefik.http.routers.dashy.tls=true"
+  #     - "traefik.http.routers.dashy.tls.certresolver=le"  
+  #     - "traefik.http.routers.dashy.rule=Host(`${DOMAIN}`)"      
+  #     - "traefik.http.services.dashy.loadbalancer.server.port=80"
+  #   networks:
+  #     - apps 
+
+networks:
+  apps:
+   external: true
+  monitor:
+    external: true

@@ -1,0 +1,28 @@
+version: "3"
+services:
+  traccar:
+    container_name: traccar
+    image: traccar/traccar:latest
+    hostname: traccar
+    # restart: unless-stopped
+    ports:
+      # - 8082:8082
+      - 5000-5150:5000-5150
+      - 5000-5150:5000-5150/udp
+    volumes:
+      - ${PWD}/logs:/opt/traccar/logs:rw
+      - ${PWD}/data:/opt/traccar/data:rw
+      - ${PWD}/traccar.xml:/opt/traccar/conf/traccar.xml:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traccar.entrypoints=websecure"
+      - "traefik.http.routers.traccar.tls=true"
+      - "traefik.http.routers.traccar.tls.certresolver=le"  
+      - "traefik.http.routers.traccar.rule=Host(`traccar.${DOMAIN}`)"      
+      - "traefik.http.services.traccar.loadbalancer.server.port=8082"
+    networks:
+      - apps
+
+networks:
+  apps:
+    external: true

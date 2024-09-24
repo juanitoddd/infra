@@ -1,0 +1,130 @@
+version: '3'
+
+services:
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cs_prometheus
+    restart: always     
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus    
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.${DOMAIN}`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.routers.prometheus.tls.certresolver=le"      
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      # - "traefik.http.routers.traefik.middlewares=auth"
+      # - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_USER}:${TRAEFIK_PASS}"
+    networks:
+      - monitor
+  
+  kuma:
+    image: louislam/uptime-kuma:1
+    container_name: cs_kuma
+    volumes:
+      - 'kuma_data:/app/data'
+    labels:
+      - "traefik.enable=true"      
+      - "traefik.http.routers.kuma.entrypoints=websecure"
+      - "traefik.http.routers.kuma.tls=true"
+      - "traefik.http.routers.kuma.tls.certresolver=le"
+      - "traefik.http.routers.kuma.rule=Host(`status.${DOMAIN}`)"
+      - "traefik.http.services.kuma.loadbalancer.server.port=3001" 
+    networks:
+      - monitor
+      - apps
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: cs_node_exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host    
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      - monitor
+  
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: cs_cadvisor    
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    networks:
+      - monitor  
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: cs_grafana    
+    volumes:
+      -  grafana-data:/var/lib/grafana
+    restart: always
+    labels:
+      - "traefik.enable=true"      
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.tls.certresolver=le"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN}`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"      
+    networks:
+      - monitor
+
+  # portainer:
+  #   container_name: cs_portainer
+  #   image: portainer/portainer-ce:2.0.0
+  #   command: -H unix:///var/run/docker.sock
+  #   # restart: always
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - portainer_data:/data
+  #   labels:      
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.portainer.entrypoints=websecure"
+  #     - "traefik.http.routers.portainer.tls=true"
+  #     - "traefik.http.routers.portainer.tls.certresolver=le"  
+  #     - "traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN}`)"
+  #     - "traefik.http.services.portainer.loadbalancer.server.port=9000"      
+  #   networks:
+  #     - monitor
+
+  # dozzle:
+  #   container_name: cs_dozzle
+  #   image: amir20/dozzle:latest
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   labels:      
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.dozzle.entrypoints=web"      
+  #     - "traefik.http.routers.dozzle.rule=Host(`logs.${DOMAIN}`)"
+  #     - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+  #   networks:
+  #     - monitor
+
+networks:
+  apps:
+   external: true
+  monitor:
+    external: true
+
+volumes:
+  # pgadmin_data:
+  #   driver: local
+  # kuma_data:
+  #   driver: local
+  # portainer_data:
+  #   driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local

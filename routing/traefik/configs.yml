@@ -1,0 +1,30 @@
+http:
+  middlewares:
+    test-auth:
+      basicAuth:
+        users:
+          - "cromasome:$apr1$nwyxd1fb$NHGUCVVL9vXfXzKZMYjkM1"            
+
+    redirect-www-to-non-www:
+      redirectRegex:
+        regex: "http?://www\\.(.*)"
+        replacement: "http://${1}"
+        permanent: true
+    
+    rabbitmq-url:
+      stripPrefix:
+        prefixes:
+          - "/rabbitmq"
+        forceSlash: true
+    
+    prisma-url:
+      stripPrefix:
+        prefixes:
+          - "/prisma"
+        forceSlash: true
+
+    admin-url:
+      stripPrefix:
+        prefixes:
+          - "/admin"
+        forceSlash: true

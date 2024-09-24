@@ -1,0 +1,21 @@
+version: '3'
+services:
+  money:
+    container_name: money
+    image: ananthakumaran/paisa:latest    
+    volumes:      
+      - ${PWD}/data:/root/Documents/paisa
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.money.entrypoints=websecure"
+      - "traefik.http.routers.money.tls=true"
+      - "traefik.http.routers.money.tls.certresolver=le"  
+      - "traefik.http.routers.money.rule=Host(`money.${DOMAIN}`)"      
+      - "traefik.http.services.money.loadbalancer.server.port=7500"
+    networks:
+      - apps
+
+networks:
+  apps:
+    external: true
