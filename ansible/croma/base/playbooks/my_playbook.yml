@@ -1,0 +1,17 @@
+---
+- name: Test new role from within this playbook
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Read Variables
+      ansible.builtin.include_vars:
+        file: ../variables/vars.yml
+
+    - name: Debug vars
+      ansible.builtin.debug:
+        msg: "{{ foo }}"
+
+    - name: Testing role
+      ansible.builtin.include_role:
+        name: croma.base.zsh
+        tasks_from: main.yml

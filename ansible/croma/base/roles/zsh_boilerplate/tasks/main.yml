@@ -1,0 +1,5 @@
+---
+# tasks file for zsh
+- name: Task is running from within the zsh role
+  ansible.builtin.debug:
+    msg: "This is a task from zsh."

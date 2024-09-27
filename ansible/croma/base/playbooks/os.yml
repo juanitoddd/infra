@@ -1,0 +1,14 @@
+---
+- name: OS
+  hosts: localhost
+  gather_facts: true
+  tasks:
+    - name: Architecture
+      ansible.builtin.debug:
+        msg: "{{ ansible_architecture }}"
+    - name: Distribution
+      ansible.builtin.debug:
+        msg: "{{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+    - name: Hostname
+      ansible.builtin.debug:
+        msg: "{{ ansible_hostname }}"

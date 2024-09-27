@@ -1,0 +1,5 @@
+---
+# tasks file for docker
+- name: Task is running from within the docker role
+  ansible.builtin.debug:
+    msg: "This is a task from docker."

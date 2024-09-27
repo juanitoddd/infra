@@ -1,0 +1,21 @@
+---
+
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Replace this task with one that validates your content
+      ansible.builtin.debug:
+        msg: "This is the Converge test"
+
+- name: os
+  ansible.builtin.import_playbook: croma.base.os
+
+- name: Test new role from within this playbook
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Testing role
+      ansible.builtin.include_role:
+        name: docker
+        tasks_from: main.yml

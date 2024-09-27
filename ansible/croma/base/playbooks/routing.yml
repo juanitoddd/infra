@@ -1,0 +1,15 @@
+---
+
+- name: Setup Traefik and whoami containers
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Read vars
+      ansible.builtin.include_vars:
+        file: ../variables/git.yml
+
+    - name: Clone from github
+      ansible.builtin.git:
+        repo: "{{infra_repo_git}}"
+        dest: "{{infra_repo_dir}}"
+        update: false

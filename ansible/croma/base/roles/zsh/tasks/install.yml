@@ -11,7 +11,7 @@
       - "{{ 'fzf' if ansible_os_family == 'Darwin' else 'curl' }}"
     state: present
   # brew don't work from root user on macOS
-  become: yes
+  become: true
   become_user: "{{ 'root' if ansible_os_family != 'Darwin' else zsh_user }}"
   when: not (zsh_user == 'root' and ansible_os_family == 'Darwin')
 
@@ -21,7 +21,7 @@
   register: zsh_antigen_path_present
 
 - name: Create directory {{ zsh_antigen_path}}
-  become: yes
+  become: true
   become_user: "{{ zsh_user }}"
   file:
     dest: "{{ zsh_antigen_path }}"
@@ -35,7 +35,7 @@
     dest: "{{ zsh_antigen_path }}/antigen"
     version: "{{ zsh_antigen_version }}"
     force: yes
-  become: yes
+  become: true
   become_user: "{{ zsh_user }}"
   register: zsh_register_antigen_clone
 
@@ -67,7 +67,7 @@
   when: not zsh_shared
 
 - name: "Download fzf to {{ zsh_fzf_path_absolute }}"
-  become: yes
+  become: true
   unarchive:
     src: "{{ zsh_fzf_url }}"
     dest: "{{ zsh_fzf_path_absolute }}"
@@ -76,7 +76,7 @@
   when: zsh_register_fzf_command.rc == 1 and ansible_os_family != 'Darwin'
 
 - name: Set directory permissions
-  become: yes
+  become: true
   file:
     name: "{{ zsh_antigen_path }}"
     owner: "{{ zsh_user }}"

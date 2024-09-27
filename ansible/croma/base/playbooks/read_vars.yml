@@ -1,0 +1,12 @@
+---
+- name: Read vars
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Read Variables
+      ansible.builtin.include_vars:
+        file: ../variables/vars.yml
+
+    - name: Debug vars
+      ansible.builtin.debug:
+        msg: "{{ foo }}"
