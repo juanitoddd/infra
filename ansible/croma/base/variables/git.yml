@@ -1,4 +1,4 @@
 ---
 
 infra_repo_git: git@github.com:juanitoddd/infra.git
-infra_repo_dir: /home/juan/clone_temp
+infra_repo_dir: /home/juan/
