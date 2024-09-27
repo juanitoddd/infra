@@ -1,0 +1,22 @@
+version: "3"
+services:
+  nahi_web:
+    container_name: nahi_web
+    build: ./web/
+    command: npm run preview
+    restart: always
+    volumes:
+      - ./web:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nahi_web.entrypoints=websecure"
+      - "traefik.http.routers.nahi_web.tls=true"
+      - "traefik.http.routers.nahi_web.tls.certresolver=le"  
+      - "traefik.http.routers.nahi_web.rule=Host(`${DOMAIN}`)"      
+      - "traefik.http.services.nahi_web.loadbalancer.server.port=8083"
+    networks:
+      - apps
+
+networks:
+  apps:
+    external: true
