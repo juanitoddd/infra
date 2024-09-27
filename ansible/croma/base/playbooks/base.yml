@@ -1,6 +1,6 @@
 ---
 
-- name: Setup Traefik and Whoami containers
+- name: Setup Base containers
   hosts: localhost
   gather_facts: false
   tasks:
@@ -10,4 +10,4 @@
 
     - name: Docker Compose up
       community.docker.docker_compose_v2:
-        project_src: "{{ infra_repo_dir }}/traefik"
+        project_src: "{{ infra_repo_dir }}/base"

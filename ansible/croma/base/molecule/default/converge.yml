@@ -11,10 +11,10 @@
 #   ansible.builtin.import_playbook: croma.base.os
 
 # - name: My Playbook
-#   ansible.builtin.import_playbook: croma.base.my_playbook
+#   ansible.builtin.import_playbook: croma.base.sample
 
 # - name: Variables
 #   ansible.builtin.import_playbook: croma.base.read_vars
 
-- name: Routing set-up
-  ansible.builtin.import_playbook: croma.base.routing
+- name: Server set-up
+  ansible.builtin.import_playbook: croma.base.setup

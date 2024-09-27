@@ -1,0 +1,30 @@
+---
+
+- name: Infrastructure Setup
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Read vars
+      ansible.builtin.include_vars:
+        file: ../variables/git.yml
+
+    - name: Clone from github
+      ansible.builtin.git:
+        repo: "{{ infra_repo_git }}"
+        dest: "{{ infra_repo_dir }}"
+        update: false
+
+- name: Hello World
+  ansible.builtin.import_playbook: hello.yml
+
+# - name: Routing set-up
+#   ansible.builtin.import_playbook: routing.yml
+
+# - name: Monitor set-up
+#   ansible.builtin.import_playbook: monitor.yml
+
+# - name: Base set-up
+#   ansible.builtin.import_playbook: base.yml
+
+# - name: Apps set-up
+#   ansible.builtin.import_playbook: apps.yml
