@@ -1,0 +1,9 @@
+---
+# This playbook prints a simple debug message
+- name: Echo
+  hosts: 127.0.0.1
+  connection: dockerhost
+  tasks:
+    - name: Print debug message
+      debug:
+        msg: Hello, world!
